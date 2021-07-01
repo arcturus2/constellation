@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package au.gov.asd.tac.constellation.graph.file.nebula;
 import au.gov.asd.tac.constellation.graph.file.GraphDataObject;
 import au.gov.asd.tac.constellation.graph.file.open.RecentFiles;
 import au.gov.asd.tac.constellation.graph.file.opener.GraphOpener;
-import au.gov.asd.tac.constellation.visual.color.ConstellationColor;
+import au.gov.asd.tac.constellation.utilities.color.ConstellationColor;
 import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -64,7 +64,7 @@ import org.openide.util.NbBundle.Messages;
         position = 0)
 @DataObject.Registration(
         mimeType = "application/x-nebula",
-        iconBase = "au/gov/asd/tac/constellation/graph/file/nebula/nebula.png",
+        iconBase = "au/gov/asd/tac/constellation/graph/file/nebula/resources/nebula.png",
         displayName = "#LBL_Nebula_LOADER",
         position = 300)
 @ActionReferences({
@@ -171,7 +171,7 @@ public class NebulaDataObject extends MultiDataObject implements OpenCookie {
 
         // Otherwise, create a random color for this nebula.
         if (c == null) {
-            final float h = new Random().nextFloat();
+            final float h = new SecureRandom().nextFloat();
             c = Color.getHSBColor(h, 0.5f, 0.95f);
             NEBULA_COLOR.put(getPrimaryFile().getPath(), c);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,22 @@
  */
 package au.gov.asd.tac.constellation.views.dataaccess.templates;
 
-import au.gov.asd.tac.constellation.arrangements.AbstractInclusionGraph.Connections;
-import au.gov.asd.tac.constellation.arrangements.ArrangementPluginRegistry;
-import au.gov.asd.tac.constellation.arrangements.VertexListInclusionGraph;
-import au.gov.asd.tac.constellation.functionality.CorePluginRegistry;
-import au.gov.asd.tac.constellation.functionality.CoreUtilities;
 import au.gov.asd.tac.constellation.graph.GraphElementType;
 import au.gov.asd.tac.constellation.graph.GraphReadMethods;
 import au.gov.asd.tac.constellation.graph.GraphWriteMethods;
-import au.gov.asd.tac.constellation.graph.operations.SetFloatValuesOperation;
+import au.gov.asd.tac.constellation.graph.interaction.InteractiveGraphPluginRegistry;
 import au.gov.asd.tac.constellation.graph.processing.GraphRecordStoreUtilities;
 import au.gov.asd.tac.constellation.graph.processing.RecordStore;
-import au.gov.asd.tac.constellation.graph.visual.concept.VisualConcept;
-import au.gov.asd.tac.constellation.pluginframework.PluginException;
-import au.gov.asd.tac.constellation.pluginframework.PluginExecutor;
-import au.gov.asd.tac.constellation.pluginframework.PluginInfo;
-import au.gov.asd.tac.constellation.pluginframework.PluginInteraction;
-import au.gov.asd.tac.constellation.pluginframework.PluginType;
-import au.gov.asd.tac.constellation.pluginframework.parameters.PluginParameters;
-import au.gov.asd.tac.constellation.pluginframework.templates.SimpleQueryPlugin;
+import au.gov.asd.tac.constellation.plugins.PluginException;
+import au.gov.asd.tac.constellation.plugins.PluginExecutor;
+import au.gov.asd.tac.constellation.plugins.PluginInfo;
+import au.gov.asd.tac.constellation.plugins.PluginInteraction;
+import au.gov.asd.tac.constellation.plugins.PluginType;
+import au.gov.asd.tac.constellation.plugins.arrangements.AbstractInclusionGraph.Connections;
+import au.gov.asd.tac.constellation.plugins.arrangements.ArrangementPluginRegistry;
+import au.gov.asd.tac.constellation.plugins.arrangements.VertexListInclusionGraph;
+import au.gov.asd.tac.constellation.plugins.parameters.PluginParameters;
+import au.gov.asd.tac.constellation.plugins.templates.SimpleQueryPlugin;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +70,7 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
 
     protected final String PLUGIN_NAME = getName();
 
-    protected RecordStore query;
+    protected RecordStore queryRecordStore;
     private RecordStore result = null;
     private final List<RecordStoreValidator> validators;
 
@@ -111,13 +108,15 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
     protected void read(final GraphReadMethods graph, final PluginInteraction interaction, final PluginParameters parameters) throws InterruptedException {
         switch (getRecordStoreType()) {
             case GraphRecordStoreUtilities.SOURCE:
-                query = GraphRecordStoreUtilities.getSelectedVertices(graph);
+                queryRecordStore = GraphRecordStoreUtilities.getSelectedVertices(graph);
                 break;
             case GraphRecordStoreUtilities.TRANSACTION:
-                query = GraphRecordStoreUtilities.getSelectedTransactions(graph);
+                queryRecordStore = GraphRecordStoreUtilities.getSelectedTransactions(graph);
                 break;
             case GraphRecordStoreUtilities.ALL:
-                query = GraphRecordStoreUtilities.getAllSelected(graph);
+                queryRecordStore = GraphRecordStoreUtilities.getAllSelected(graph);
+                break;
+            default:
                 break;
         }
     }
@@ -130,11 +129,11 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
             Thread.currentThread().setName(THREAD_POOL_NAME);
 
             for (final RecordStoreValidator validator : getValidators()) {
-                validator.validatePreQuery(this, query, interaction, parameters);
+                validator.validatePreQuery(this, queryRecordStore, interaction, parameters);
             }
 
-            query.reset();
-            final RecordStore rs = query(query, interaction, parameters);
+            queryRecordStore.reset();
+            final RecordStore rs = query(queryRecordStore, interaction, parameters);
 
             for (final RecordStoreValidator validator : getValidators()) {
                 validator.validatePostQuery(this, rs, interaction, parameters);
@@ -184,7 +183,7 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
         }
 
         if (result != null) {
-            // TODO: try to see if its worth setting this to init with schema to true. It did cause issues with it sometimes generating Vertex # nodes
+            // TODO: try to see if its worth setting this to init with schema to true - it did cause issues with it sometimes generating vertex # nodes
             final List<Integer> newVertices = GraphRecordStoreUtilities.addRecordStoreToGraph(wg, result, false, true, null);
 
             wg.validateKey(GraphElementType.VERTEX, true);
@@ -194,29 +193,15 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
             if (!newVertices.isEmpty()) {
                 final PluginExecutor arrangement = completionArrangement();
                 if (arrangement != null) {
-                    final float[] xOriginal = new float[wg.getVertexCount()];
-                    final float[] yOriginal = new float[wg.getVertexCount()];
-                    final float[] zOriginal = new float[wg.getVertexCount()];
-
-                    // save original positions
-                    if (CoreUtilities.isGraphViewFrozen() && wg.isRecordingEdit()) {
-                        saveOriginalPositionCoordinates(wg, xOriginal, yOriginal, zOriginal);
-                    }
-
                     // run the arrangement
                     final VertexListInclusionGraph vlGraph = new VertexListInclusionGraph(wg, Connections.NONE, newVertices);
                     arrangement.executeNow(vlGraph.getInclusionGraph());
                     vlGraph.retrieveCoords();
-
-                    // restore the original positions
-                    if (CoreUtilities.isGraphViewFrozen() && wg.isRecordingEdit()) {
-                        restoreOriginalPositionCoordinates(wg, xOriginal, yOriginal, zOriginal);
-                    }
                 }
             }
 
             // Reset the view
-            PluginExecutor.startWith(CorePluginRegistry.RESET).executeNow(wg);
+            PluginExecutor.startWith(InteractiveGraphPluginRegistry.RESET_VIEW).executeNow(wg);
         }
     }
 
@@ -238,19 +223,6 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
         return GraphRecordStoreUtilities.SOURCE;
     }
 
-//    /**
-//     * Should an arrangement be done after the plugin completes?
-//     * <p>
-//     * Some plugins result in new nodes being created in a graph. In order to
-//     * make these nodes visible to the user, the new nodes should undergo a
-//     * default arrangement.
-//     *
-//     * @return True if new nodes added by this plugin are to be arranged after
-//     * the plugin completes, false if not.
-//     */
-//    public boolean arrangeOnCompletion() {
-//        return false;
-//    }
     /**
      * The arrangement to be done after the plugin completes.
      * <p>
@@ -336,71 +308,4 @@ public abstract class RecordStoreQueryPlugin extends SimpleQueryPlugin {
         return Collections.unmodifiableList(validators);
     }
 
-    /**
-     * Save the original position coordinates so that they can be restored.
-     *
-     * @param wg The graph
-     * @param xOriginal Float array to store the x positions, indexed by
-     * position
-     * @param yOriginal Float array to store the y positions, indexed by
-     * position
-     * @param zOriginal Float array to store the z positions, indexed by
-     * position
-     */
-    private void saveOriginalPositionCoordinates(final GraphWriteMethods wg, final float[] xOriginal, final float[] yOriginal, final float[] zOriginal) {
-        final int xAttr = wg.getAttribute(GraphElementType.VERTEX, VisualConcept.VertexAttribute.X.getName());
-        final int yAttr = wg.getAttribute(GraphElementType.VERTEX, VisualConcept.VertexAttribute.Y.getName());
-        final int zAttr = wg.getAttribute(GraphElementType.VERTEX, VisualConcept.VertexAttribute.Z.getName());
-
-        final int vertexCount = wg.getVertexCount();
-        for (int position = 0; position < vertexCount; position++) {
-            final int vxId = wg.getVertex(position);
-            xOriginal[position] = wg.getFloatValue(xAttr, vxId);
-            yOriginal[position] = wg.getFloatValue(yAttr, vxId);
-            zOriginal[position] = wg.getFloatValue(zAttr, vxId);
-        }
-    }
-
-    /**
-     * Restore the original position coordinates.
-     * <p>
-     * Note that if the original position is 0,0,0 then its not going to be
-     * restored because we don't want the graphics card to crash.
-     *
-     * @param wg The graph
-     * @param xOriginal Float array to store the x positions, indexed by
-     * position
-     * @param yOriginal Float array to store the y positions, indexed by
-     * position
-     * @param zOriginal Float array to store the z positions, indexed by
-     * position
-     */
-    private void restoreOriginalPositionCoordinates(final GraphWriteMethods wg, final float[] xOriginal, final float[] yOriginal, final float[] zOriginal) {
-        final int xAttr = wg.getAttribute(GraphElementType.VERTEX, VisualConcept.VertexAttribute.X.getName());
-        final int yAttr = wg.getAttribute(GraphElementType.VERTEX, VisualConcept.VertexAttribute.Y.getName());
-        final int zAttr = wg.getAttribute(GraphElementType.VERTEX, VisualConcept.VertexAttribute.Z.getName());
-
-        final SetFloatValuesOperation setXOperation = new SetFloatValuesOperation(wg, GraphElementType.VERTEX, xAttr);
-        final SetFloatValuesOperation setYOperation = new SetFloatValuesOperation(wg, GraphElementType.VERTEX, yAttr);
-        final SetFloatValuesOperation setZOperation = new SetFloatValuesOperation(wg, GraphElementType.VERTEX, zAttr);
-
-        final int vxCount = wg.getVertexCount();
-        for (int position = 0; position < vxCount; position++) {
-            final int vxId = wg.getVertex(position);
-            if (xOriginal[position] != 0) {
-                setXOperation.setValue(vxId, xOriginal[position]);
-            }
-            if (yOriginal[position] != 0) {
-                setYOperation.setValue(vxId, yOriginal[position]);
-            }
-            if (zOriginal[position] != 0) {
-                setZOperation.setValue(vxId, zOriginal[position]);
-            }
-        }
-
-        // restore the x,y,z float values efficiently
-        wg.executeGraphOperation(setXOperation);
-        wg.executeGraphOperation(setYOperation);
-        wg.executeGraphOperation(setZOperation);
-    }
 }

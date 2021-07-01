@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,18 +106,8 @@ public class DeveloperOptionsPanel extends javax.swing.JPanel {
         memoryPanel.setName(""); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(gcOnOpenCheckbox, org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.gcOnOpenCheckbox.text")); // NOI18N
-        gcOnOpenCheckbox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                gcOnOpenCheckboxActionPerformed(evt);
-            }
-        });
 
         org.openide.awt.Mnemonics.setLocalizedText(gcOnCloseCheckbox, org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.gcOnCloseCheckbox.text")); // NOI18N
-        gcOnCloseCheckbox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                gcOnCloseCheckboxActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout memoryPanelLayout = new javax.swing.GroupLayout(memoryPanel);
         memoryPanel.setLayout(memoryPanelLayout);
@@ -135,7 +125,7 @@ public class DeveloperOptionsPanel extends javax.swing.JPanel {
             .addGroup(memoryPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(gcOnOpenCheckbox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(gcOnCloseCheckbox)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -143,25 +133,10 @@ public class DeveloperOptionsPanel extends javax.swing.JPanel {
         glPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.glPanel.border.title"))); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(debugGlCheckbox, org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.debugGlCheckbox.text")); // NOI18N
-        debugGlCheckbox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                debugGlCheckboxActionPerformed(evt);
-            }
-        });
 
         org.openide.awt.Mnemonics.setLocalizedText(printGlCheckbox, org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.printGlCheckbox.text")); // NOI18N
-        printGlCheckbox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                printGlCheckboxActionPerformed(evt);
-            }
-        });
 
         org.openide.awt.Mnemonics.setLocalizedText(displayFpsCheckbox, org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.displayFpsCheckbox.text")); // NOI18N
-        displayFpsCheckbox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                displayFpsCheckboxActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout glPanelLayout = new javax.swing.GroupLayout(glPanel);
         glPanel.setLayout(glPanelLayout);
@@ -206,9 +181,9 @@ public class DeveloperOptionsPanel extends javax.swing.JPanel {
                 .addComponent(memoryPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(glPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(masterResetButton)
-                .addContainerGap())
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         glPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(DeveloperOptionsPanel.class, "DeveloperOptionsPanel.glPanel.AccessibleContext.accessibleName")); // NOI18N
@@ -241,26 +216,6 @@ public class DeveloperOptionsPanel extends javax.swing.JPanel {
             ex.printStackTrace();
         }
     }//GEN-LAST:event_masterResetButtonActionPerformed
-
-    private void gcOnOpenCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gcOnOpenCheckboxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_gcOnOpenCheckboxActionPerformed
-
-    private void gcOnCloseCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gcOnCloseCheckboxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_gcOnCloseCheckboxActionPerformed
-
-    private void displayFpsCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayFpsCheckboxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_displayFpsCheckboxActionPerformed
-
-    private void printGlCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printGlCheckboxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_printGlCheckboxActionPerformed
-
-    private void debugGlCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debugGlCheckboxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_debugGlCheckboxActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox debugGlCheckbox;

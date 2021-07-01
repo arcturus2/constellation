@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import au.gov.asd.tac.constellation.graph.Graph;
 import au.gov.asd.tac.constellation.graph.file.GraphDataObject;
 import au.gov.asd.tac.constellation.graph.manager.GraphManagerListener;
 import au.gov.asd.tac.constellation.utilities.memory.MemoryManager;
-import au.gov.asd.tac.constellation.visual.display.VisualManager;
+import au.gov.asd.tac.constellation.utilities.visual.VisualManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,13 +93,13 @@ public class GraphNode extends AbstractNode {
      *
      * @param id A unique graph identifier.
      *
-     * @return The graph with the specified id, or null if there is no graph
-     * with that identifier.
+     * @return The graph with the specified id, or null if there is no graph with that identifier.
      */
     public static Graph getGraph(final String id) {
         GraphNode graphNode = GRAPHS.get(id);
         return graphNode == null ? null : graphNode.getGraph();
     }
+
     private final Graph graph;
     private final VisualManager visualManager;
     private GraphDataObject gdo;
@@ -110,30 +110,23 @@ public class GraphNode extends AbstractNode {
     /**
      * Create a new Node for a Graph.
      * <p>
-     * Maintaining a Sheet is not as straight-forward as it seems. The
-     * createSheet() method is called only once, so building a new Sheet
-     * whenever the graph changes won't work. The trick is to return a Sheet
-     * that we keep a reference to, and rebuild that Sheet on a graph property
-     * change.
+     * Maintaining a Sheet is not as straight-forward as it seems. The createSheet() method is called only once, so
+     * building a new Sheet whenever the graph changes won't work. The trick is to return a Sheet that we keep a
+     * reference to, and rebuild that Sheet on a graph property change.
      * <p>
-     * There's a further catch: each Property returns a value via a getValue()
-     * method, so there's no opportunity to get a single graph read lock to get
-     * all of the values at once. Acquiring a read lock for each and every graph
-     * attribute seems horrible. Therefore, the property set data is collected
-     * in one go (in inspectGraph()), and used to insert a new lot of Set
-     * instances into the Sheet (in updateSheet()).
+     * There's a further catch: each Property returns a value via a getValue() method, so there's no opportunity to get
+     * a single graph read lock to get all of the values at once. Acquiring a read lock for each and every graph
+     * attribute seems horrible. Therefore, the property set data is collected in one go (in inspectGraph()), and used
+     * to insert a new lot of Set instances into the Sheet (in updateSheet()).
      *
      * @param graph The Graph.
      * @param gdo The GraphDataObject.
      * @param tc The graph's TopComponent.
-     * @param visualManager The VisualManager used to respond to the graphs
-     * changes to visual attributes and display these via an associated
-     * VisualProcessor.
+     * @param visualManager The VisualManager used to respond to the graphs changes to visual attributes and display
+     * these via an associated VisualProcessor.
      */
     public GraphNode(final Graph graph, final GraphDataObject gdo, final TopComponent tc, final VisualManager visualManager) {
         this(new InstanceContent(), graph, gdo, tc, visualManager);
-
-        graph.setUndoManager(undoRedoManager);
     }
 
     /**
@@ -157,7 +150,7 @@ public class GraphNode extends AbstractNode {
 
         graph.setUndoManager(undoRedoManager);
 
-        GRAPHS.put(graph.getId(), this);
+        GRAPHS.put(graph.getId(), GraphNode.this);
 
         for (GraphManagerListener listener : LISTENERS) {
             listener.graphOpened(graph);
@@ -167,8 +160,12 @@ public class GraphNode extends AbstractNode {
     }
 
     @Override
-    public void finalize() {
-        MemoryManager.finalizeObject(GraphNode.class);
+    protected void finalize() throws Throwable {
+        try {
+            MemoryManager.finalizeObject(GraphNode.class);
+        } finally {
+            super.finalize();
+        }
     }
 
     @Override
@@ -204,13 +201,11 @@ public class GraphNode extends AbstractNode {
     }
 
     /**
-     * Return the GraphVisualiser controlling visualisation of the graph for
-     * this graph node. This should be used by plugins and utilities that
-     * specifically need reference to the way the graph is being rendered rather
-     * than just its attributes. This includes plugins that want to run
-     * animations (temporarily altering the rendering of the graph), or things
-     * like the ExportToImagePlugin, which needs to ask the renderer to take a
-     * snapshot of what it is currently displaying.
+     * Return the GraphVisualiser controlling visualisation of the graph for this graph node. This should be used by
+     * plugins and utilities that specifically need reference to the way the graph is being rendered rather than just
+     * its attributes. This includes plugins that want to run animations (temporarily altering the rendering of the
+     * graph), or things like the ExportToImagePlugin, which needs to ask the renderer to take a snapshot of what it is
+     * currently displaying.
      *
      * @return The GraphVisualiser used by this GraphNode.
      */
@@ -221,14 +216,13 @@ public class GraphNode extends AbstractNode {
     /**
      * The TopComponent that is displaying the graph that this node represents.
      *
-     * @return The TopComponent that is displaying the graph that this node
-     * represents.
+     * @return The TopComponent that is displaying the graph that this node represents.
      */
     public TopComponent getTopComponent() {
         return tc;
     }
 
-    public void makeBusy(final boolean busy) {
+    public synchronized void makeBusy(final boolean busy) {
         if (busy) {
             if (busyCount++ == 0) {
                 tc.makeBusy(true);
@@ -281,8 +275,7 @@ public class GraphNode extends AbstractNode {
     /**
      * Called to provide a Sheet for the property viewer.
      * <p>
-     * This is only called once, so we keep a reference to the sheet and update
-     * it as required.
+     * This is only called once, so we keep a reference to the sheet and update it as required.
      *
      * @return A Sheet for the property viewer.
      */
@@ -304,8 +297,7 @@ public class GraphNode extends AbstractNode {
     }
 
     /**
-     * method to generate a new graph name based on a given value and the set of
-     * existing graphs
+     * method to generate a new graph name based on a given value and the set of existing graphs
      *
      * @param suggestedName suggested new graph name
      * @return string with new graph name

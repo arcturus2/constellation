@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package au.gov.asd.tac.constellation.preferences;
 import au.gov.asd.tac.constellation.preferences.rest.RestDirectory;
 import java.io.File;
 import java.util.prefs.Preferences;
-import javax.swing.JFileChooser;
 import org.openide.util.Lookup;
 
 /**
@@ -49,10 +48,12 @@ public final class ApplicationPreferenceKeys {
         final File f = new File(userDir);
         if (!f.exists()) {
             if (!f.mkdirs()) {
-                // TODO warn the user.
+                // TODO: warn the user.
             }
         } else if (!f.isDirectory()) {
-            // TODO warn the user.
+            // TODO: warn the user.
+        } else {
+            // Do nothing
         }
 
         return userDir;
@@ -67,7 +68,7 @@ public final class ApplicationPreferenceKeys {
         return new File(System.getProperty("user.home"), ".CONSTELLATION").getPath();
     }
 
-    /**
+    /** 
      * User directory.
      */
     public static final String USER_DIR = "userDir";
@@ -82,15 +83,16 @@ public final class ApplicationPreferenceKeys {
     public static final int AUTOSAVE_SCHEDULE_DEFAULT = 5;
 
     /**
-     * Tutorial window.
+     * Whats New window.
      */
     public static final String TUTORIAL_ON_STARTUP = "tutorialMode";
-    public static final boolean TUTORIAL_ON_STARTUP_DEFAULT = true;
+    public static final boolean TUTORIAL_ON_STARTUP_DEFAULT = false;
+ 
     /**
-     * Freeze graph view.
+     * Welcome window.
      */
-    public static final String FREEZE_GRAPH_VIEW = "freezeGraphView";
-    public static final boolean FREEZE_GRAPH_VIEW_DEFAULT = true;
+    public static final String WELCOME_ON_STARTUP = "welcomeMode";
+    public static final boolean WELCOME_ON_STARTUP_DEFAULT = true;
 
     /**
      * Web server listening port.
@@ -102,14 +104,14 @@ public final class ApplicationPreferenceKeys {
      * Jupyter notebook directory.
      */
     public static final String JUPYTER_NOTEBOOK_DIR = "jupyterNotebookDir";
-    public static final String JUPYTER_NOTEBOOK_DIR_DEFAULT = new JFileChooser().getFileSystemView().getDefaultDirectory().getAbsolutePath();
-    
-     /**
+    public static final String JUPYTER_NOTEBOOK_DIR_DEFAULT = new File(System.getProperty("user.dir")).getPath();
+
+    /**
      * Remember Save As location.
      */
     public static final String REMEMBER_SAVE_LOCATION = "rememberSaveLocation";
     public static final boolean REMEMBER_SAVE_LOCATION_DEFAULT = true;
-    
+
     /**
      * File Save location.
      */
@@ -132,10 +134,12 @@ public final class ApplicationPreferenceKeys {
         final File f = new File(restDir);
         if (!f.exists()) {
             if (!f.mkdirs()) {
-                // TODO warn the user.
+                // TODO: warn the user.
             }
         } else if (!f.isDirectory()) {
-            // TODO warn the user.
+            // TODO: warn the user.
+        } else {
+            // Do nothing
         }
 
         return restDir;
@@ -169,11 +173,17 @@ public final class ApplicationPreferenceKeys {
     public static final String CHART_DISPLAY_CONSTELLATION = "constellation";
     public static final String CHART_DISPLAY_BROWSER = "browser";
     public static final String CHART_DISPLAY_DEFAULT = CHART_DISPLAY_CONSTELLATION;
+
     /**
      * Scripting.
      */
     public static final String DEFAULT_TEMPLATE = "defaultTemplate";
     public static final String DEFAULT_TEMPLATE_DEFAULT = null;
+
+    /**
+     * Quality Control View Priorities
+     */
+    public static final String RULE_PRIORITIES = "customRules";
 
     private ApplicationPreferenceKeys() {
     }

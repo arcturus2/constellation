@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@ package au.gov.asd.tac.constellation.views.qualitycontrol.rules;
 
 import au.gov.asd.tac.constellation.graph.Graph;
 import au.gov.asd.tac.constellation.graph.GraphReadMethods;
-import au.gov.asd.tac.constellation.graph.schema.SchemaVertexType;
-import au.gov.asd.tac.constellation.graph.schema.SchemaVertexTypeUtilities;
-import au.gov.asd.tac.constellation.graph.visual.concept.VisualConcept;
-import au.gov.asd.tac.constellation.schema.analyticschema.concept.AnalyticConcept;
+import au.gov.asd.tac.constellation.graph.schema.analytic.concept.AnalyticConcept;
+import au.gov.asd.tac.constellation.graph.schema.type.SchemaVertexType;
+import au.gov.asd.tac.constellation.graph.schema.type.SchemaVertexTypeUtilities;
+import au.gov.asd.tac.constellation.graph.schema.visual.concept.VisualConcept;
 import java.util.regex.Pattern;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * A Rule for identifying node identifier values which do not comply with their
- * specified type.
+ * A Rule for identifying node identifier values which do not comply with their specified type.
  *
  * @author cygnus_x-1
  */
@@ -44,6 +43,7 @@ public class IdentifierInconsistentWithTypeRule extends QualityControlRule {
     private static final int RISK = 30;
 
     public IdentifierInconsistentWithTypeRule() {
+        // Method intentionally left blank
     }
 
     @Override

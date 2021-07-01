@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ import au.gov.asd.tac.constellation.graph.Graph;
 import au.gov.asd.tac.constellation.graph.GraphConstants;
 import au.gov.asd.tac.constellation.graph.GraphElementType;
 import au.gov.asd.tac.constellation.graph.ReadableGraph;
-import au.gov.asd.tac.constellation.graph.visual.concept.VisualConcept;
-import au.gov.asd.tac.constellation.schema.analyticschema.concept.SpatialConcept;
+import au.gov.asd.tac.constellation.graph.schema.analytic.concept.SpatialConcept;
+import au.gov.asd.tac.constellation.graph.schema.visual.attribute.objects.Blaze;
+import au.gov.asd.tac.constellation.graph.schema.visual.concept.VisualConcept;
+import au.gov.asd.tac.constellation.utilities.color.ConstellationColor;
 import au.gov.asd.tac.constellation.utilities.datastructure.ObjectCache;
 import au.gov.asd.tac.constellation.utilities.geospatial.Shape;
 import au.gov.asd.tac.constellation.views.mapview.features.ConstellationAbstractFeature;
@@ -33,8 +35,6 @@ import au.gov.asd.tac.constellation.views.mapview.markers.ConstellationMarkerFac
 import au.gov.asd.tac.constellation.views.mapview.markers.ConstellationMultiMarker;
 import au.gov.asd.tac.constellation.views.mapview.markers.ConstellationPointMarker;
 import au.gov.asd.tac.constellation.views.mapview.markers.ConstellationPolygonMarker;
-import au.gov.asd.tac.constellation.visual.blaze.Blaze;
-import au.gov.asd.tac.constellation.visual.color.ConstellationColor;
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.data.GeoJSONReader;
 import de.fhpotsdam.unfolding.geo.Location;
@@ -48,9 +48,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
-import org.apache.commons.math3.stat.clustering.Cluster;
-import org.apache.commons.math3.stat.clustering.DBSCANClusterer;
-import org.apache.commons.math3.stat.clustering.EuclideanDoublePoint;
+import org.apache.commons.math3.ml.clustering.Cluster;
+import org.apache.commons.math3.ml.clustering.DBSCANClusterer;
+import org.apache.commons.math3.ml.clustering.DoublePoint;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
@@ -182,9 +182,9 @@ public abstract class MarkerCache extends ObjectCache<ConstellationAbstractMarke
         final Set<ConstellationClusterMarker> clusterMarkers = new HashSet<>();
         if (markerState.isShowClusterMarkers()) {
             // generate points for clusters
-            final Map<EuclideanDoublePoint, List<ConstellationAbstractMarker>> markerPoints = new HashMap<>();
+            final Map<DoublePoint, List<ConstellationAbstractMarker>> markerPoints = new HashMap<>();
             CACHE.keySet().forEach(marker -> {
-                final EuclideanDoublePoint point = new EuclideanDoublePoint(
+                final DoublePoint point = new DoublePoint(
                         new double[]{
                             map.getScreenPosition(marker.getLocation()).x,
                             map.getScreenPosition(marker.getLocation()).y});
@@ -195,8 +195,8 @@ public abstract class MarkerCache extends ObjectCache<ConstellationAbstractMarke
             });
 
             // calculate new clusters
-            final DBSCANClusterer<EuclideanDoublePoint> clusterer = new DBSCANClusterer<>(CLUSTER_DISTANCE, 0);
-            final List<Cluster<EuclideanDoublePoint>> clusters = clusterer.cluster(markerPoints.keySet());
+            final DBSCANClusterer<DoublePoint> clusterer = new DBSCANClusterer<>(CLUSTER_DISTANCE, 0);
+            final List<Cluster<DoublePoint>> clusters = clusterer.cluster(markerPoints.keySet());
 
             // build new cluster markers
             clusters.forEach(cluster -> {
@@ -273,7 +273,6 @@ public abstract class MarkerCache extends ObjectCache<ConstellationAbstractMarke
                                             colors.add(MarkerUtilities.value(MarkerUtilities.DEFAULT_CUSTOM_COLOR));
                                             selected |= marker.isSelected();
                                             dimmed |= marker.isDimmed();
-                                            hidden |= marker.isHidden();
                                         }
                                         continue;
                                 }
@@ -345,7 +344,6 @@ public abstract class MarkerCache extends ObjectCache<ConstellationAbstractMarke
 
                             // update dimming
                             marker.setDimmed(dimmed);
-
                             // update visibility
                             if ((markerState.isShowSelectedOnly() && !marker.isSelected())
                                     || (!markerState.isShowPointMarkers() && marker instanceof ConstellationPointMarker)

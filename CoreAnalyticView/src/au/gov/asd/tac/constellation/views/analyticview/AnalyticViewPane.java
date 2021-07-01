@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,18 @@
  */
 package au.gov.asd.tac.constellation.views.analyticview;
 
+import au.gov.asd.tac.constellation.utilities.color.ConstellationColor;
+import au.gov.asd.tac.constellation.utilities.icon.UserInterfaceIconProvider;
 import au.gov.asd.tac.constellation.views.analyticview.AnalyticViewTopComponent.AnalyticController;
 import au.gov.asd.tac.constellation.views.analyticview.questions.AnalyticQuestion;
 import au.gov.asd.tac.constellation.views.analyticview.utilities.AnalyticException;
-import au.gov.asd.tac.constellation.visual.icons.UserInterfaceIconProvider;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.openide.util.HelpCtx;
 
@@ -47,7 +44,6 @@ public class AnalyticViewPane extends BorderPane {
 
     private final VBox analyticViewPane;
     private final AnchorPane analyticOptionsPane;
-    private final HBox analyticOptionControls;
     private final HBox analyticOptionButtons;
     private final Button runButton;
 
@@ -76,26 +72,9 @@ public class AnalyticViewPane extends BorderPane {
         this.analyticConfigurationPane = new AnalyticConfigurationPane();
         analyticConfigurationPane.prefWidthProperty().bind(analyticViewPane.widthProperty());
 
-        // the pane holding the analytic option items
-        this.analyticOptionControls = new HBox();
-        final MenuBar analyticMenu = new MenuBar();
-        final Menu optionsMenu = new Menu("Options");
-        final MenuItem saveMenuItem = new MenuItem("Save Question");
-        saveMenuItem.setOnAction(event -> {
-            // TODO: handle saving analytic questions, then add this to the menu
-        });
-//        optionsMenu.getItems().add(saveMenuItem);
-        analyticMenu.getMenus().add(optionsMenu);
-
-        final Button addButton = new Button("", new ImageView(UserInterfaceIconProvider.ADD.buildImage(16)));
-        addButton.setOnAction(event -> {
-            // TODO: handle adding new analytic view tabs, then add this to the controls
-        });
-        analyticOptionControls.getChildren().add(analyticMenu); //, addButton);
-
         // the pane holding the analytic option buttons
         this.analyticOptionButtons = new HBox();
-        final Button helpButton = new Button("", new ImageView(UserInterfaceIconProvider.HELP.buildImage(16)));
+        final Button helpButton = new Button("", new ImageView(UserInterfaceIconProvider.HELP.buildImage(16, ConstellationColor.BLUEBERRY.getJavaColor())));
         helpButton.setOnAction(event -> {
             new HelpCtx(this.getClass().getName()).display();
         });
@@ -113,10 +92,8 @@ public class AnalyticViewPane extends BorderPane {
                     questionThread.interrupt();
                 }
                 running = false;
-                Platform.runLater(() -> {
-                    runButton.setText(RUN_START_TEXT);
-                    runButton.setStyle(RUN_START_STYLE);
-                });
+                runButton.setText(RUN_START_TEXT);
+                runButton.setStyle(RUN_START_STYLE);
             } else {
                 // display results pane
                 if (!analyticViewPane.getChildren().contains(analyticResultsPane)) {
@@ -137,10 +114,10 @@ public class AnalyticViewPane extends BorderPane {
 
                     running = true;
                     try {
-                        AnalyticQuestion question = analyticConfigurationPane.answerCurrentQuestion();
+                        AnalyticQuestion<?> question = analyticConfigurationPane.answerCurrentQuestion();
                         analyticResultsPane.displayResults(question);
                     } catch (AnalyticException ex) {
-                        final AnalyticQuestion question = new AnalyticQuestion(analyticConfigurationPane.getCurrentQuestion());
+                        final AnalyticQuestion<?> question = new AnalyticQuestion<>(analyticConfigurationPane.getCurrentQuestion());
                         question.addException(ex);
                         analyticResultsPane.displayResults(question);
                     } finally {
@@ -159,10 +136,8 @@ public class AnalyticViewPane extends BorderPane {
         analyticOptionButtons.getChildren().addAll(helpButton, runButton);
 
         // populate the analytic options pane
-        analyticOptionsPane.getChildren().addAll(analyticOptionControls, analyticOptionButtons);
-        AnchorPane.setLeftAnchor(analyticOptionControls, 5.0);
+        analyticOptionsPane.getChildren().add(analyticOptionButtons);
         AnchorPane.setRightAnchor(analyticOptionButtons, 5.0);
-        VBox.setVgrow(analyticMenu, Priority.ALWAYS);
 
         // populate the analytic view pane
         analyticViewPane.getChildren().addAll(analyticOptionsPane, analyticConfigurationPane);

@@ -69,26 +69,24 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Jesse Glick
  * @author Marian Petras
  */
-class FileChooser extends JFileChooser {
+public class FileChooser extends JFileChooser {
 
     @StaticResource
-    private static final String NEBULA_PNG = "au/gov/asd/tac/constellation/graph/file/nebula/nebula.png";
+    private static final String NEBULA_PNG = "au/gov/asd/tac/constellation/graph/file/nebula/resources/nebula.png";
     private static final ImageIcon NEBULA_ICON = ImageUtilities.loadImageIcon(NEBULA_PNG, false);
 
     /**
      * Creates a new instance of FileChooser
      */
-    FileChooser() {
+    public FileChooser() {
         setFileSelectionMode(JFileChooser.FILES_ONLY);
         setMultiSelectionEnabled(true);
 
         /* initialize file filters */
-        FileFilter currentFilter = getFileFilter();
         addChoosableFileFilters();
 
         /**
-         * Commented out by algol so the CONSTELLATION file filter has
-         * precedence (instead of "All Files").
+         * Commented out by algol so the CONSTELLATION file filter has precedence (instead of "All Files").
          */
 //        setFileFilter(currentFilter);
     }
@@ -107,6 +105,8 @@ class FileChooser extends JFileChooser {
             return SchemaFactoryUtilities.getDefaultSchemaFactory().getIcon().buildIcon(16);
         } else if (s.endsWith(".nebula")) {
             return NEBULA_ICON;
+        } else {
+            // Do nothing
         }
 
         return super.getIcon(f);
@@ -147,7 +147,10 @@ class FileChooser extends JFileChooser {
                 msgPatternRef = "MSG_FileIsADirectory";                 //NOI18N
             } else if (!file.isFile()) {
                 msgPatternRef = "MSG_FileIsNotPlainFile";               //NOI18N
+            } else {
+                // Do nothing
             }
+
             if (msgPatternRef == null) {
                 continue;
             }

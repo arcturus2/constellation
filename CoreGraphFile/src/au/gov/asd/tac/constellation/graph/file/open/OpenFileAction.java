@@ -59,15 +59,14 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
- * Action which allows user open file from disk. It is installed in Menu | File
- * | Open file... .
+ * Action which allows user open file from disk. It is installed in Menu | File | Open file... .
  *
  * @author Jesse Glick
  * @author Marian Petras
  */
 @ActionRegistration(
         displayName = "#LBL_openFile",
-        iconBase = "au/gov/asd/tac/constellation/graph/file/open/openFile.png",
+        iconBase = "au/gov/asd/tac/constellation/graph/file/open/resources/openFile.png",
         iconInMenu = false)
 @ActionID(category = "File", id = "au.gov.asd.tac.constellation.graph.file.open.OpenFileAction")
 @ActionReferences({
@@ -79,12 +78,10 @@ public class OpenFileAction implements ActionListener {
      * stores the last current directory of the file chooser
      */
     private static File currentDirectory = null;
-
-    public OpenFileAction() {
-    }
+    private boolean running;
 
     private HelpCtx getHelpCtx() {
-        return new HelpCtx(OpenFileAction.class);
+        return new HelpCtx(this.getClass().getName());
     }
 
     /**
@@ -100,13 +97,16 @@ public class OpenFileAction implements ActionListener {
         return chooser;
     }
 
+    private static void setCurrentDirectory(final File currentDir) {
+        currentDirectory = currentDir;
+    }
+
     /**
      * Displays the specified file chooser and returns a list of selected files.
      *
      * @param chooser file chooser to display
      * @return array of selected files,
-     * @exception org.openide.util.UserCancelException if the user cancelled the
-     * operation
+     * @exception org.openide.util.UserCancelException if the user cancelled the operation
      */
     public static File[] chooseFilesToOpen(final JFileChooser chooser)
             throws UserCancelException {
@@ -122,11 +122,9 @@ public class OpenFileAction implements ActionListener {
         } while (files.length == 0);
         return files;
     }
-    private static boolean running;
 
     /**
-     * {@inheritDoc} Displays a file chooser dialog and opens the selected
-     * files.
+     * {@inheritDoc} Displays a file chooser dialog and opens the selected files.
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
@@ -139,12 +137,12 @@ public class OpenFileAction implements ActionListener {
             File[] files;
             try {
                 files = chooseFilesToOpen(chooser);
-                currentDirectory = chooser.getCurrentDirectory();
+                OpenFileAction.setCurrentDirectory(chooser.getCurrentDirectory());
             } catch (UserCancelException ex) {
                 return;
             }
-            for (int i = 0; i < files.length; i++) {
-                OpenFile.openFile(files[i], -1);
+            for (final File file : files) {
+                OpenFile.openFile(file, -1);
             }
         } finally {
             running = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 package au.gov.asd.tac.constellation.graph.interaction.visual;
 
 import au.gov.asd.tac.constellation.graph.Graph;
-import au.gov.asd.tac.constellation.graph.dragdrop.GraphDropper;
-import au.gov.asd.tac.constellation.graph.dragdrop.GraphDropper.DropInfo;
-import au.gov.asd.tac.constellation.graph.interaction.HitState;
-import au.gov.asd.tac.constellation.graph.interaction.HitState.HitType;
-import au.gov.asd.tac.constellation.visual.display.VisualManager;
-import au.gov.asd.tac.constellation.visual.graphics3d.Vector3f;
+import au.gov.asd.tac.constellation.graph.interaction.framework.HitState;
+import au.gov.asd.tac.constellation.graph.interaction.framework.HitState.HitType;
+import au.gov.asd.tac.constellation.graph.visual.dragdrop.GraphDropper;
+import au.gov.asd.tac.constellation.graph.visual.dragdrop.GraphDropper.DropInfo;
+import au.gov.asd.tac.constellation.utilities.graphics.Vector3f;
+import au.gov.asd.tac.constellation.utilities.visual.VisualManager;
 import java.awt.Point;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDragEvent;
@@ -99,6 +99,7 @@ public final class GraphRendererDropTarget extends DropTargetAdapter {
                         hitState = hitTestQueue.take();
                         break;
                     } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
                     }
                 }
                 final DropInfo dropInfo = new DropInfo(dropGraphLocation, hitState.getCurrentHitId(), hitState.getCurrentHitType().equals(HitType.VERTEX), hitState.getCurrentHitType().equals(HitType.TRANSACTION));

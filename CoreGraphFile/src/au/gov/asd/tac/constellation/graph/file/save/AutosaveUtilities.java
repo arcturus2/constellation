@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import au.gov.asd.tac.constellation.preferences.ApplicationPreferenceKeys;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -60,6 +59,8 @@ public final class AutosaveUtilities {
             LOGGER.warning(msg);
 
             return null;
+        } else {
+            return saveDir;
         }
 
         return saveDir;
@@ -78,21 +79,13 @@ public final class AutosaveUtilities {
             return new File[0];
         }
 
-        final File[] saveFiles = saveDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(final File dir, final String name) {
-                return name.endsWith(ext);
-            }
-        });
-
-        return saveFiles;
+        return saveDir.listFiles((dir, name) -> name.endsWith(ext));
     }
 
     /**
      * Delete the autosave files belonging to the specified graph id.
      * <p>
-     * This is typically for when the VisualTopComponent is closing and the
-     * graph has not been modified.
+     * This is typically for when the VisualTopComponent is closing and the graph has not been modified.
      *
      * @param id The id of the graph from ReadableGraph.getId().
      */
@@ -105,35 +98,40 @@ public final class AutosaveUtilities {
     /**
      * Delete a pair of autosave files.
      * <p>
-     * If the .star is given, the matching .star_auto will be deleted, and vice
-     * versa.
+     * If the .star is given, the matching .star_auto will be deleted, and vice versa.
      *
      * @param f A .star or .star_auto to be deleted.
      */
     public static void deleteAutosave(final File f) {
         final String path = f.getPath();
-        f.delete();
+        final boolean fIsDeleted = f.delete();
+        if (!fIsDeleted) {
+            //TODO: Handle case where file not successfully deleted
+        }
 
         File f2 = null;
         if (path.endsWith(GraphDataObject.FILE_EXTENSION)) {
             f2 = new File(path + "_auto");
         } else if (path.endsWith(AUTO_EXT)) {
             f2 = new File(path.substring(0, path.length() - 5));
+        } else {
+            // Do nothing
         }
 
         if (f2 != null) {
-            f2.delete();
+            final boolean f2IsDeleted = f2.delete();
+            if (!f2IsDeleted) {
+                //TODO: Handle case where file not successfully deleted
+            }
         }
     }
 
     /**
-     * For a given File, find and return the autosave properties for that file
-     * if it exists.
+     * For a given File, find and return the autosave properties for that file if it exists.
      *
      * @param f A File.
      *
-     * @return The autosave properties for that file if an autosave exists,
-     * otherwise null.
+     * @return The autosave properties for that file if an autosave exists, otherwise null.
      */
     public static Properties getAutosave(final File f) {
         for (final File autosave : getAutosaves(AUTO_EXT)) {
@@ -162,8 +160,7 @@ public final class AutosaveUtilities {
     /**
      * Safely move a file.
      * <p>
-     * The destination file is renamed to file.bak, the source file is copied,
-     * the .bak file is deleted.
+     * The destination file is renamed to file.bak, the source file is copied, the .bak file is deleted.
      *
      * @param from The source file.
      * @param to The destination file.
@@ -173,11 +170,17 @@ public final class AutosaveUtilities {
     public static void copyFile(final File from, final File to) throws IOException {
         final File toBak = new File(to.getPath() + ".bak");
         if (toBak.exists()) {
-            toBak.delete();
+            final boolean toBakIsDeleted = toBak.delete();
+            if (!toBakIsDeleted) {
+                //TODO: Handle case where file not successfully deleted
+            }
         }
 
         if (to.exists()) {
-            to.renameTo(toBak);
+            final boolean toRenamed = to.renameTo(toBak);
+            if (!toRenamed) {
+                //TODO: Handle case where file not successfully renamed
+            }
         }
 
         try (InputStream in = new FileInputStream(from)) {
@@ -194,25 +197,23 @@ public final class AutosaveUtilities {
                 }
             }
         }
-
-        if (toBak.exists()) {
-            toBak.delete();
-        }
     }
 
     /**
      * Clean up stray files in the autosave directory.
      * <p>
-     * It's possible to have .star files without a corresponding .star_auto, and
-     * vice versa, depending on exactly where a crash happened. This method gets
-     * rid of dangling files.
+     * It's possible to have .star files without a corresponding .star_auto, and vice versa, depending on exactly where
+     * a crash happened. This method gets rid of dangling files.
      */
     public static void cleanup() {
         // Find .star files aithout a .star_auto.
         for (final File star : getAutosaves(GraphDataObject.FILE_EXTENSION)) {
             final File auto = new File(star.getPath() + "_auto");
             if (!auto.exists()) {
-                star.delete();
+                final boolean starIsDeleted = star.delete();
+                if (!starIsDeleted) {
+                    //TODO: Handle case where file not successfully deleted
+                }
             }
         }
 
@@ -221,7 +222,10 @@ public final class AutosaveUtilities {
             final String autos = auto.getPath();
             final File star = new File(autos.substring(0, autos.length() - 5));
             if (!star.exists()) {
-                auto.delete();
+                final boolean autoIsDeleted = auto.delete();
+                if (!autoIsDeleted) {
+                    //TODO: Handle case where file not successfully deleted
+                }
             }
         }
     }

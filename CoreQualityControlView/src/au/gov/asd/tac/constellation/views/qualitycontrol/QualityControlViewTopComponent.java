@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package au.gov.asd.tac.constellation.views.qualitycontrol;
 
-import au.gov.asd.tac.constellation.functionality.CoreUtilities;
-import au.gov.asd.tac.constellation.functionality.views.JavaFxTopComponent;
-import au.gov.asd.tac.constellation.preferences.ApplicationPreferenceKeys;
+import au.gov.asd.tac.constellation.graph.Graph;
+import au.gov.asd.tac.constellation.views.JavaFxTopComponent;
 import au.gov.asd.tac.constellation.views.qualitycontrol.daemon.QualityControlAutoVetter;
 import au.gov.asd.tac.constellation.views.qualitycontrol.daemon.QualityControlListener;
 import au.gov.asd.tac.constellation.views.qualitycontrol.daemon.QualityControlState;
@@ -34,7 +33,7 @@ import org.openide.windows.TopComponent;
  */
 @TopComponent.Description(
         preferredID = "QualityControlViewTopComponent",
-        iconBase = "au/gov/asd/tac/constellation/views/qualitycontrol/resources/quality_control_view.png",
+        iconBase = "au/gov/asd/tac/constellation/views/qualitycontrol/resources/quality-control-view.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS)
 @TopComponent.Registration(
         mode = "explorer",
@@ -43,7 +42,7 @@ import org.openide.windows.TopComponent;
         category = "Window",
         id = "au.gov.asd.tac.constellation.views.qualitycontrol.QualityControlViewTopComponent")
 @ActionReferences({
-    @ActionReference(path = "Menu/Views", position = 900),
+    @ActionReference(path = "Menu/Views", position = 1000),
     @ActionReference(path = "Shortcuts", name = "CS-Q")})
 @TopComponent.OpenActionRegistration(
         displayName = "#CTL_QualityControlViewAction",
@@ -62,7 +61,7 @@ public final class QualityControlViewTopComponent extends JavaFxTopComponent<Qua
 
         initComponents();
 
-        qualityControlViewPane = new QualityControlViewPane(QualityControlViewTopComponent.this);
+        qualityControlViewPane = new QualityControlViewPane();
         initContent();
     }
 
@@ -73,25 +72,39 @@ public final class QualityControlViewTopComponent extends JavaFxTopComponent<Qua
 
     @Override
     protected String createStyle() {
-        return "resources/qualitycontrolview.css";
+        return "resources/quality-control-view.css";
     }
 
     @Override
     public void handleComponentOpened() {
+        super.handleComponentOpened();
         QualityControlAutoVetter.getInstance().addListener(this);
         QualityControlAutoVetter.getInstance().invokeListener(this);
-        CoreUtilities.addPreferenceChangeListener(ApplicationPreferenceKeys.OUTPUT2_PREFERENCE, this);
+        QualityControlAutoVetter.getInstance().init();
     }
 
     @Override
     public void handleComponentClosed() {
+        super.handleComponentClosed();
         QualityControlAutoVetter.getInstance().removeListener(this);
-        CoreUtilities.removePreferenceChangeListener(ApplicationPreferenceKeys.OUTPUT2_PREFERENCE, this);
     }
 
     @Override
-    public void qualityControlChanged(QualityControlState state) {
-        qualityControlViewPane.refreshQualityControlView(state);
+    public void qualityControlChanged(final QualityControlState state) {
+        if (needsUpdate()) {
+            qualityControlViewPane.refreshQualityControlView(state);
+        }
+    }
+
+    @Override
+    protected void componentShowing() {
+        super.componentShowing();
+        QualityControlAutoVetter.getInstance().initWithRefresh(true);
+    }
+
+    @Override
+    protected void handleGraphClosed(final Graph graph) {
+        qualityControlViewPane.refreshQualityControlView(null);
     }
 
     /**

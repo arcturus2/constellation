@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ import org.openide.util.NbBundle.Messages;
         position = 0)
 @DataObject.Registration(
         mimeType = "application/x-graph",
-        //        iconBase = "au/gov/asd/tac/constellation/graph/file/constellation.png",
+        iconBase = "au/gov/asd/tac/constellation/graph/file/constellation.png",
         displayName = "#LBL_Graph_LOADER",
         position = 0)
 @ActionReferences({

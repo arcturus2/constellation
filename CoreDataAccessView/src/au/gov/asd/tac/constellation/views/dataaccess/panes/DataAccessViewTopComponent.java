@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package au.gov.asd.tac.constellation.views.dataaccess.panes;
 
-import au.gov.asd.tac.constellation.functionality.CoreUtilities;
-import au.gov.asd.tac.constellation.functionality.views.JavaFxTopComponent;
 import au.gov.asd.tac.constellation.graph.Graph;
-import au.gov.asd.tac.constellation.preferences.ApplicationPreferenceKeys;
+import au.gov.asd.tac.constellation.graph.manager.GraphManager;
 import au.gov.asd.tac.constellation.security.proxy.ProxyUtilities;
+import au.gov.asd.tac.constellation.views.JavaFxTopComponent;
 import au.gov.asd.tac.constellation.views.dataaccess.io.ParameterIOUtilities;
+import au.gov.asd.tac.constellation.views.qualitycontrol.daemon.QualityControlAutoVetter;
 import javafx.application.Platform;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -34,7 +34,7 @@ import org.openide.windows.TopComponent;
  */
 @TopComponent.Description(
         preferredID = "DataAccessViewTopComponent",
-        iconBase = "au/gov/asd/tac/constellation/views/dataaccess/panes/resources/data_access_view.png",
+        iconBase = "au/gov/asd/tac/constellation/views/dataaccess/panes/resources/data-access-view.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(
@@ -72,7 +72,7 @@ public final class DataAccessViewTopComponent extends JavaFxTopComponent<DataAcc
         initContent();
 
         addAttributeCountChangeHandler(graph -> {
-            if (dataAccessViewPane != null) {
+            if (needsUpdate() && dataAccessViewPane != null) {
                 dataAccessViewPane.update(graph);
             }
         });
@@ -98,22 +98,30 @@ public final class DataAccessViewTopComponent extends JavaFxTopComponent<DataAcc
 
     @Override
     public String createStyle() {
-        return "resources/dataaccessview.css";
+        return "resources/data-access-view.css";
     }
 
     @Override
     public void handleComponentOpened() {
-        CoreUtilities.addPreferenceChangeListener(ApplicationPreferenceKeys.OUTPUT2_PREFERENCE, this);
+        super.handleComponentOpened();
+        QualityControlAutoVetter.getInstance().addObserver(dataAccessViewPane);
     }
 
     @Override
     public void handleComponentClosed() {
-        CoreUtilities.removePreferenceChangeListener(ApplicationPreferenceKeys.OUTPUT2_PREFERENCE, this);
+        super.handleComponentClosed();
+        QualityControlAutoVetter.getInstance().removeObserver(dataAccessViewPane);
+    }
+
+    @Override
+    protected void componentShowing() {
+        super.componentShowing();
+        handleNewGraph(GraphManager.getDefault().getActiveGraph());
     }
 
     @Override
     protected void handleNewGraph(final Graph graph) {
-        if (dataAccessViewPane != null) {
+        if (needsUpdate() && dataAccessViewPane != null) {
             dataAccessViewPane.update(graph);
             Platform.runLater(() -> {
                 ParameterIOUtilities.loadDataAccessState(dataAccessViewPane, graph);

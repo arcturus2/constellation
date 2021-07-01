@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package au.gov.asd.tac.constellation.views.analyticview.questions;
 
-import au.gov.asd.tac.constellation.algorithms.sna.metrics.MultiplexityPlugin;
-import au.gov.asd.tac.constellation.algorithms.sna.metrics.RatioOfReciprocityPlugin;
-import au.gov.asd.tac.constellation.algorithms.sna.metrics.WeightPlugin;
-import au.gov.asd.tac.constellation.pluginframework.parameters.PluginParameters;
+import au.gov.asd.tac.constellation.plugins.algorithms.sna.metrics.MultiplexityPlugin;
+import au.gov.asd.tac.constellation.plugins.algorithms.sna.metrics.RatioOfReciprocityPlugin;
+import au.gov.asd.tac.constellation.plugins.algorithms.sna.metrics.WeightPlugin;
+import au.gov.asd.tac.constellation.plugins.parameters.PluginParameters;
 import au.gov.asd.tac.constellation.views.analyticview.aggregators.AnalyticAggregator;
 import au.gov.asd.tac.constellation.views.analyticview.aggregators.MeanScoreAggregator;
 import au.gov.asd.tac.constellation.views.analyticview.analytics.AnalyticPlugin;
@@ -59,7 +59,7 @@ public class HasClosestRelationshipQuestion implements AnalyticQuestionDescripti
     }
 
     @Override
-    public Class<? extends AnalyticResult> getResultType() {
+    public Class<? extends AnalyticResult<?>> getResultType() {
         return ScoreResult.class;
     }
 
@@ -73,6 +73,8 @@ public class HasClosestRelationshipQuestion implements AnalyticQuestionDescripti
             parameters.setBooleanValue(MultiplexityPlugin.GROUP_BY_TOP_LEVEL_TYPE, false);
         } else if (plugin instanceof WeightAnalytic) {
             parameters.setBooleanValue(WeightPlugin.NORMALISE_AVAILABLE_PARAMETER_ID, true);
+        } else {
+            // Do nothing
         }
     }
 }

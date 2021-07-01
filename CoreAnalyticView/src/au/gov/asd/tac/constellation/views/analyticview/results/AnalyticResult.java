@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,24 @@ import au.gov.asd.tac.constellation.views.analyticview.AnalyticViewTopComponent.
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * The result of an AnalyticPlugin, which will be supported by one or more
- * AnalyticVisualisation.
+ * The result of an AnalyticPlugin, which will be supported by one or more AnalyticVisualisation.
  *
  * @author cygnus_x-1
  * @param <D>
  */
 public abstract class AnalyticResult<D extends AnalyticData> {
 
-    protected final List<D> result = new LinkedList<>();
+    protected final Map<IdentificationData, D> result = new HashMap<>();
+//    protected final List<D> result = new LinkedList<>();
     protected final Map<String, String> metadata = new HashMap<>();
     protected boolean ignoreNullResults = false;
     protected AnalyticController analyticController = null;
-    protected final List<ResultListener> resultListeners = new ArrayList<>();
+    protected final List<ResultListener<D>> resultListeners = new ArrayList<>();
 
     public void setSelectionOnGraph(final List<D> results) {
         final List<Integer> verticesToSelect = new ArrayList<>();
@@ -47,6 +47,8 @@ public abstract class AnalyticResult<D extends AnalyticData> {
                 verticesToSelect.add(result.getElementId());
             } else if (result.getElementType() == GraphElementType.TRANSACTION) {
                 transactionsToSelect.add(result.getElementId());
+            } else {
+                // Do nothing
             }
         });
         analyticController.selectOnGraph(GraphElementType.VERTEX, verticesToSelect);
@@ -56,11 +58,13 @@ public abstract class AnalyticResult<D extends AnalyticData> {
     public void setSelectionOnVisualisation(final GraphElementType elementType, final List<Integer> elementIds) {
         final List<D> selectedElementScores = new ArrayList<>();
         final List<D> ignoredElementScores = new ArrayList<>();
-        result.forEach(elementScore -> {
-            if (!elementType.equals(elementScore.elementType)) {
+        result.values().forEach(elementScore -> {
+            if (!elementType.equals(elementScore.getElementType())) {
                 ignoredElementScores.add(elementScore);
             } else if (elementIds.contains(elementScore.getElementId())) {
                 selectedElementScores.add(elementScore);
+            } else {
+                // Do nothing
             }
         });
         resultListeners.forEach(listener -> {
@@ -73,19 +77,22 @@ public abstract class AnalyticResult<D extends AnalyticData> {
     }
 
     public final void sort() {
-        result.sort(null);
     }
 
     public final List<D> get() {
-        return Collections.unmodifiableList(result);
+        return Collections.unmodifiableList(result.values().stream().collect(Collectors.toList()));
     }
 
-    public void add(final D result) {
-        this.result.add(result);
+    public final Map<IdentificationData, D> getResult() {
+        return result;
+    }
+
+    public void add(final D resultData) {
+        this.result.put(resultData.getIdentificationData(), resultData);
     }
 
     public void addAll(final List<D> results) {
-        this.result.addAll(results);
+        results.forEach(result -> this.result.put(result.getIdentificationData(), result));
     }
 
     public final boolean hasMetadata() {
@@ -112,7 +119,7 @@ public abstract class AnalyticResult<D extends AnalyticData> {
         this.analyticController = analyticController;
     }
 
-    public final void addResultListener(final ResultListener listener) {
+    public final void addResultListener(final ResultListener<D> listener) {
         this.resultListeners.add(listener);
     }
 

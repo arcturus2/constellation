@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package au.gov.asd.tac.constellation.graph.file.nebula;
 
-import au.gov.asd.tac.constellation.pluginframework.gui.PluginParametersDialog;
-import au.gov.asd.tac.constellation.pluginframework.gui.PluginParametersSwingDialog;
-import au.gov.asd.tac.constellation.pluginframework.parameters.PluginParameter;
-import au.gov.asd.tac.constellation.pluginframework.parameters.PluginParameters;
-import au.gov.asd.tac.constellation.pluginframework.parameters.types.ColorParameterType;
-import au.gov.asd.tac.constellation.pluginframework.parameters.types.ColorParameterType.ColorParameterValue;
-import au.gov.asd.tac.constellation.pluginframework.parameters.types.FileParameterType;
-import au.gov.asd.tac.constellation.pluginframework.parameters.types.FileParameterType.FileParameterKind;
-import au.gov.asd.tac.constellation.pluginframework.parameters.types.FileParameterType.FileParameterValue;
-import au.gov.asd.tac.constellation.visual.color.ConstellationColor;
+import au.gov.asd.tac.constellation.plugins.gui.PluginParametersDialog;
+import au.gov.asd.tac.constellation.plugins.gui.PluginParametersSwingDialog;
+import au.gov.asd.tac.constellation.plugins.parameters.PluginParameter;
+import au.gov.asd.tac.constellation.plugins.parameters.PluginParameters;
+import au.gov.asd.tac.constellation.plugins.parameters.types.ColorParameterType;
+import au.gov.asd.tac.constellation.plugins.parameters.types.ColorParameterType.ColorParameterValue;
+import au.gov.asd.tac.constellation.plugins.parameters.types.FileParameterType;
+import au.gov.asd.tac.constellation.plugins.parameters.types.FileParameterType.FileParameterKind;
+import au.gov.asd.tac.constellation.plugins.parameters.types.FileParameterType.FileParameterValue;
+import au.gov.asd.tac.constellation.utilities.color.ConstellationColor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -39,7 +39,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 
 @ActionID(category = "File", id = "au.gov.asd.tac.constellation.graph.file.nebula.NewNebulaAction")
-@ActionRegistration(displayName = "#CTL_NewNebulaAction")//, iconBase = "au/gov/asd/tac/constellation/file/nebula/nebula.png")
+@ActionRegistration(displayName = "#CTL_NewNebulaAction", iconBase = "au/gov/asd/tac/constellation/graph/file/nebula/resources/nebula.png")
 @ActionReference(path = "Menu/Experimental/Tools", position = 0)
 @Messages("CTL_NewNebulaAction=New Nebula")
 public final class NewNebulaAction implements ActionListener {

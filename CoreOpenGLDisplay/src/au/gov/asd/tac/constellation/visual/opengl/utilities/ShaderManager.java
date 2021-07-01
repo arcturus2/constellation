@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package au.gov.asd.tac.constellation.visual.opengl.utilities;
 
-import au.gov.asd.tac.constellation.visual.graphics3d.Matrix44f;
-import au.gov.asd.tac.constellation.visual.graphics3d.Vector3f;
-import au.gov.asd.tac.constellation.visual.graphics3d.Vector4f;
+import au.gov.asd.tac.constellation.utilities.graphics.Matrix44f;
+import au.gov.asd.tac.constellation.utilities.graphics.Vector3f;
+import au.gov.asd.tac.constellation.utilities.graphics.Vector4f;
+import au.gov.asd.tac.constellation.utilities.text.SeparatorConstants;
 import com.jogamp.opengl.GL3;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,9 +32,8 @@ import java.util.logging.Logger;
 /**
  * This class manages some stock shaders use by the OpenGL SuperBible.
  * <p>
- * For applications, these shaders are pretty much irrelevant. The only thing of
- * use are the shader attribute ids and fragment shader color numbers. (Maybe
- * these should be moved into their own class?)
+ * For applications, these shaders are pretty much irrelevant. The only thing of use are the shader attribute ids and
+ * fragment shader color numbers. (Maybe these should be moved into their own class?)
  *
  * @author algol
  */
@@ -81,6 +81,11 @@ public class ShaderManager {
     private final ArrayList<ShaderLookupEntry> shaderTable;
     private final Properties shaderMap;
 
+    //other constants
+    private static final String V_COLOR = "vColor";
+    private static final String V_VERTEX = "vVertex";
+    private static final String OUT_COLOR = "outColor";
+
     public ShaderManager() {
         stockShaders = new int[SHADER_LAST];
         shaderTable = new ArrayList<>();
@@ -97,8 +102,7 @@ public class ShaderManager {
     /**
      * Read shader sources from a Properties-like file.
      *
-     * @return A Properties instance containing the shader sources keyed by
-     * their names.
+     * @return A Properties instance containing the shader sources keyed by their names.
      * @throws IOException
      */
     private static Properties loadShaders() throws IOException {
@@ -112,12 +116,13 @@ public class ShaderManager {
                 if (line.trim().endsWith("=")) {
                     if (key != null) {
                         shaderMap.setProperty(key, value);
-//                    System.out.println("## " + key + "\n" + value + "\n");
                     }
                     key = line.substring(0, line.length() - 1).trim();
                     value = "";
                 } else if (line.length() != 0) {
-                    value += line + "\n";
+                    value += line + SeparatorConstants.NEWLINE;
+                } else {
+                    // Do nothing
                 }
             }
         }
@@ -142,32 +147,32 @@ public class ShaderManager {
                 shaderMap.getProperty("SHADER_IDENTITY_VS"),
                 null,
                 shaderMap.getProperty("SHADER_IDENTITY_FS"),
-                ATTRIBUTE_VERTEX, "vVertex",
-                FRAG_BASE, "outColor");
+                ATTRIBUTE_VERTEX, V_VERTEX,
+                FRAG_BASE, OUT_COLOR);
 
         stockShaders[SHADER_FLAT] = GLTools.loadShaderSourceWithAttributes(gl, "SHADER_FLAT",
                 shaderMap.getProperty("SHADER_FLAT_VS"),
                 null,
                 shaderMap.getProperty("SHADER_FLAT_FS"),
-                ATTRIBUTE_VERTEX, "vVertex",
-                FRAG_BASE, "outColor");
+                ATTRIBUTE_VERTEX, V_VERTEX,
+                FRAG_BASE, OUT_COLOR);
 
         stockShaders[SHADER_POINT_LIGHT_DIFF] = GLTools.loadShaderSourceWithAttributes(gl, "SHADER_POINT_LIGHT_DIFF",
                 shaderMap.getProperty("SHADER_POINT_LIGHT_DIFF_VS"),
                 null,
                 shaderMap.getProperty("SHADER_POINT_LIGHT_DIFF_FS"),
-                ATTRIBUTE_VERTEX, "vVertex",
+                ATTRIBUTE_VERTEX, V_VERTEX,
                 ATTRIBUTE_NORMAL, "vNormal",
-                FRAG_BASE, "outColor");
+                FRAG_BASE, OUT_COLOR);
 
         stockShaders[SHADER_TEXTURE_POINT_LIGHT_DIFF] = GLTools.loadShaderSourceWithAttributes(gl, "SHADER_TEXTURE_POINT_LIGHT_DIFF",
                 shaderMap.getProperty("SHADER_TEXTURE_POINT_LIGHT_DIFF_VS"),
                 null,
                 shaderMap.getProperty("SHADER_TEXTURE_POINT_LIGHT_DIFF_FS"),
-                ATTRIBUTE_VERTEX, "vVertex",
+                ATTRIBUTE_VERTEX, V_VERTEX,
                 ATTRIBUTE_NORMAL, "vNormal",
                 ATTRIBUTE_TEXTURE0, "vTexCoord0",
-                FRAG_BASE, "outColor");
+                FRAG_BASE, OUT_COLOR);
     }
 
     /**
@@ -190,9 +195,8 @@ public class ShaderManager {
         // Set up the uniforms.
         if (shaderId == SHADER_IDENTITY) {
             // Just the color.
-            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], "vColor");
+            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], V_COLOR);
             float[] color = (float[]) args[0];
-//            System.out.printf("color %f %f %f %f", color[0], color[1], color[2], color[3]);
             gl.glUniform4fv(colorLoc, 1, color, 0);
         } else if (shaderId == SHADER_FLAT) {
             // The modelview projection matrix and the color.
@@ -200,7 +204,7 @@ public class ShaderManager {
             Matrix44f mvpMatrix = (Matrix44f) args[0];
             gl.glUniformMatrix4fv(transformLoc, 1, false, mvpMatrix.a, 0);
 
-            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], "vColor");
+            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], V_COLOR);
             float[] color = (float[]) args[1];
             gl.glUniform4fv(colorLoc, 1, color, 0);
         } else if (shaderId == SHADER_POINT_LIGHT_DIFF) {
@@ -216,7 +220,7 @@ public class ShaderManager {
             Vector3f vLightPos = (Vector3f) args[2];
             gl.glUniform3fv(light, 1, vLightPos.a, 0);
 
-            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], "vColor");
+            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], V_COLOR);
             float[] color = (float[]) args[3];
             gl.glUniform4fv(colorLoc, 1, color, 0);
         } else if (shaderId == SHADER_TEXTURE_POINT_LIGHT_DIFF) {
@@ -232,12 +236,12 @@ public class ShaderManager {
             Vector3f lightPos = (Vector3f) args[2];
             gl.glUniform3fv(light, 1, lightPos.a, 0);
 
-            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], "vColor");
+            int colorLoc = gl.glGetUniformLocation(stockShaders[shaderId], V_COLOR);
             Vector4f color = (Vector4f) args[3];
             gl.glUniform4fv(colorLoc, 1, color.a, 0);
 
             int textureUnit = gl.glGetUniformLocation(stockShaders[shaderId], "textureUnit0");
-            int i = ((Integer) args[4]).intValue();
+            int i = (Integer) args[4];
             gl.glUniform1i(textureUnit, i);
         } else {
             throw new RenderException("Unimplemented shader.");

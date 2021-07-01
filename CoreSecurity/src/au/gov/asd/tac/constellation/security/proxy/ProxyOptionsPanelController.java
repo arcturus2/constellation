@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
 
 /**
- * An options panel that allows proxies to be specified.
+ * A controller for {@link ProxyOptionsPanel}.
  *
  * @author algol
  */
@@ -37,7 +37,7 @@ import org.openide.util.NbPreferences;
         position = 900)
 @org.openide.util.NbBundle.Messages({
     "ProxyOptions_DisplayName=Proxy",
-    "ProxyOptions_Keywords=proxy proxy"
+    "ProxyOptions_Keywords=proxy"
 })
 public class ProxyOptionsPanelController extends OptionsPanelController implements HelpCtx.Provider {
 
@@ -81,30 +81,25 @@ public class ProxyOptionsPanelController extends OptionsPanelController implemen
 
     @Override
     public void cancel() {
+        // DO NOTHING
     }
 
     @Override
     public boolean isValid() {
         final ProxyOptionsPanel proxyOptionsPanel = getPanel();
-        final boolean valid
-                = ProxyUtilities.parseProxy(proxyOptionsPanel.getDefaultProxy(), true) != null
+        return ProxyUtilities.parseProxy(proxyOptionsPanel.getDefaultProxy(), true) != null
                 && ProxyUtilities.parseProxies(proxyOptionsPanel.getAdditionalProxies(), false) != null
                 && proxyOptionsPanel.getBypassProxyHosts() != null;
-
-        return valid;
     }
 
     @Override
     public boolean isChanged() {
         final Preferences prefs = NbPreferences.forModule(ProxyPreferenceKeys.class);
         final ProxyOptionsPanel proxyOptionsPanel = getPanel();
-        final boolean changed
-                = !(proxyOptionsPanel.getUseDefaultSettings() == prefs.getBoolean(ProxyPreferenceKeys.USE_DEFAULTS, ProxyPreferenceKeys.USE_DEFAULTS_DEFAULT)
+        return !(proxyOptionsPanel.getUseDefaultSettings() == prefs.getBoolean(ProxyPreferenceKeys.USE_DEFAULTS, ProxyPreferenceKeys.USE_DEFAULTS_DEFAULT)
                 && proxyOptionsPanel.getDefaultProxy().equals(prefs.get(ProxyPreferenceKeys.DEFAULT, ProxyPreferenceKeys.DEFAULT_DEFAULT))
                 && proxyOptionsPanel.getAdditionalProxies().equals(prefs.get(ProxyPreferenceKeys.ADDITIONAL, ProxyPreferenceKeys.ADDITIONAL_DEFAULT))
                 && proxyOptionsPanel.getBypassProxyHosts().equals(prefs.get(ProxyPreferenceKeys.BYPASS, ProxyPreferenceKeys.BYPASS_DEFAULT)));
-
-        return changed;
     }
 
     @Override
@@ -117,6 +112,11 @@ public class ProxyOptionsPanelController extends OptionsPanelController implemen
         pcs.removePropertyChangeListener(listener);
     }
 
+    @Override
+    public JComponent getComponent(final Lookup masterLookup) {
+        return getPanel();
+    }
+
     private ProxyOptionsPanel getPanel() {
         if (panel == null) {
             panel = new ProxyOptionsPanel(this);
@@ -125,12 +125,7 @@ public class ProxyOptionsPanelController extends OptionsPanelController implemen
     }
 
     @Override
-    public JComponent getComponent(final Lookup masterLookup) {
-        return getPanel();
-    }
-
-    @Override
     public HelpCtx getHelpCtx() {
-        return new HelpCtx("au.gov.asd.tac.constellation.functionality.proxies");
+        return new HelpCtx("au.gov.asd.tac.constellation.security.proxies");
     }
 }

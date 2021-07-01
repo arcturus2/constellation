@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ package au.gov.asd.tac.constellation.views.tableview;
 
 import au.gov.asd.tac.constellation.graph.GraphElementType;
 import au.gov.asd.tac.constellation.graph.processing.GraphRecordStoreUtilities;
-import au.gov.asd.tac.constellation.pluginframework.PluginException;
-import au.gov.asd.tac.constellation.pluginframework.PluginExecution;
-import au.gov.asd.tac.constellation.pluginframework.PluginGraphs;
-import au.gov.asd.tac.constellation.pluginframework.PluginInteraction;
-import au.gov.asd.tac.constellation.pluginframework.logging.ConstellationLoggerHelper;
-import au.gov.asd.tac.constellation.pluginframework.parameters.PluginParameters;
-import au.gov.asd.tac.constellation.pluginframework.templates.SimplePlugin;
+import au.gov.asd.tac.constellation.plugins.PluginException;
+import au.gov.asd.tac.constellation.plugins.PluginExecution;
+import au.gov.asd.tac.constellation.plugins.PluginGraphs;
+import au.gov.asd.tac.constellation.plugins.PluginInteraction;
+import au.gov.asd.tac.constellation.plugins.logging.ConstellationLoggerHelper;
+import au.gov.asd.tac.constellation.plugins.parameters.PluginParameters;
+import au.gov.asd.tac.constellation.plugins.templates.SimplePlugin;
 import au.gov.asd.tac.constellation.utilities.csv.SmartCSVWriter;
 import au.gov.asd.tac.constellation.views.tableview.GraphTableModel.AttributeSegment;
 import java.awt.Point;
@@ -36,13 +36,13 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringBufferInputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -54,7 +54,7 @@ import javax.swing.JTable;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.util.Exceptions;
 
@@ -121,10 +121,8 @@ public class CopyDataToClipboard implements ActionListener, Action {
                 return "CSV files";
             }
         }).showSaveDialog();
-        if (f != null) {
-            if (!f.getName().toLowerCase().endsWith(".csv")) {
-                f = new File(f.getAbsolutePath() + ".csv");
-            }
+        if (f != null && !f.getName().toLowerCase().endsWith(".csv")) {
+            f = new File(f.getAbsolutePath() + ".csv");
         }
 
         return f;
@@ -156,8 +154,7 @@ public class CopyDataToClipboard implements ActionListener, Action {
     /**
      * Copy all rows and specified columns to the clipboard.
      *
-     * @param attrsegs A List of AttributeSegment instances corresponding to the
-     * columns to be copied.
+     * @param attrsegs A List of AttributeSegment instances corresponding to the columns to be copied.
      * @param includeHeader True to include column headers in the copy.
      */
     void processAllRows(final List<AttributeSegment> attrsegs, boolean includeHeader) throws IOException {
@@ -166,8 +163,7 @@ public class CopyDataToClipboard implements ActionListener, Action {
     }
 
     /**
-     * Copy the table to the clipboard in a format that Word is able to
-     * understand.
+     * Copy the table to the clipboard in a format that Word is able to understand.
      *
      *
      */
@@ -204,6 +200,8 @@ public class CopyDataToClipboard implements ActionListener, Action {
                     case VX_DST:
                         colName = GraphRecordStoreUtilities.DESTINATION + colName;
                         break;
+                    default:
+                        break;
                 }
             }
 
@@ -221,7 +219,7 @@ public class CopyDataToClipboard implements ActionListener, Action {
                 final Object o = dataModel.getValueAt(i, columnModelIdx);
                 final String s = o == null ? "" : o.toString();
                 sb.append("<td>");
-                sb.append(StringEscapeUtils.escapeHtml(s));
+                sb.append(StringEscapeUtils.escapeHtml4(s));
                 sb.append("</td>");
             }
             sb.append("</tr>");
@@ -234,13 +232,13 @@ public class CopyDataToClipboard implements ActionListener, Action {
 
     private static class HtmlSelection implements Transferable {
 
-        private static ArrayList<DataFlavor> htmlFlavors = new ArrayList<>();
+        private static final ArrayList<DataFlavor> HTML_FLAVORS = new ArrayList<>();
 
         static {
             try {
-                htmlFlavors.add(new DataFlavor("text/html;class=java.lang.String"));
-                htmlFlavors.add(new DataFlavor("text/html;class=java.io.Reader"));
-                htmlFlavors.add(new DataFlavor("text/html;charset=unicode;class=java.io.InputStream"));
+                HTML_FLAVORS.add(new DataFlavor("text/html;class=java.lang.String"));
+                HTML_FLAVORS.add(new DataFlavor("text/html;class=java.io.Reader"));
+                HTML_FLAVORS.add(new DataFlavor("text/html;charset=unicode;class=java.io.InputStream"));
             } catch (ClassNotFoundException ex) {
                 Exceptions.printStackTrace(ex);
             }
@@ -255,12 +253,12 @@ public class CopyDataToClipboard implements ActionListener, Action {
         @Override
         public DataFlavor[] getTransferDataFlavors() {
 
-            return (DataFlavor[]) htmlFlavors.toArray(new DataFlavor[htmlFlavors.size()]);
+            return HTML_FLAVORS.toArray(new DataFlavor[HTML_FLAVORS.size()]);
         }
 
         @Override
         public boolean isDataFlavorSupported(DataFlavor flavor) {
-            return htmlFlavors.contains(flavor);
+            return HTML_FLAVORS.contains(flavor);
         }
 
         @Override
@@ -270,9 +268,10 @@ public class CopyDataToClipboard implements ActionListener, Action {
             } else if (Reader.class.equals(flavor.getRepresentationClass())) {
                 return new StringReader(html);
             } else if (InputStream.class.equals(flavor.getRepresentationClass())) {
-                return new StringBufferInputStream(html);
+                return new ByteArrayInputStream(html.getBytes(StandardCharsets.UTF_8));
+            } else {
+                throw new UnsupportedFlavorException(flavor);
             }
-            throw new UnsupportedFlavorException(flavor);
         }
     }
 
@@ -292,8 +291,7 @@ public class CopyDataToClipboard implements ActionListener, Action {
     /**
      * Copy selected rows and specified columns to the clipboard.
      *
-     * @param attrsegs A List of AttributeSegment instances corresponding to the
-     * columns to be copied.
+     * @param attrsegs A List of AttributeSegment instances corresponding to the columns to be copied.
      * @param includeHeader True to include column headers in the copy.
      */
     void processSelectedRows(final ArrayList<AttributeSegment> attrsegs, boolean includeHeader) throws IOException {
@@ -365,6 +363,8 @@ public class CopyDataToClipboard implements ActionListener, Action {
                         case VX_DST:
                             colName = GraphRecordStoreUtilities.DESTINATION + colName;
                             break;
+                        default:
+                            break;
                     }
                 }
 
@@ -400,11 +400,9 @@ public class CopyDataToClipboard implements ActionListener, Action {
     }
 
     /**
-     * Gets the indices of columns based on the AttributeSegment for that
-     * column.
+     * Gets the indices of columns based on the AttributeSegment for that column.
      *
-     * @param attrsegs A List of AttributeSegment instances corresponding to
-     * columns.
+     * @param attrsegs A List of AttributeSegment instances corresponding to columns.
      *
      * @return The indices that correspond to the columns with names provided.
      */
@@ -423,9 +421,7 @@ public class CopyDataToClipboard implements ActionListener, Action {
         }
 
         final ArrayList<Integer> result = new ArrayList<>();
-        attrsegs.stream().forEach((attrseg) -> {
-            result.add(attrseg2index.get(attrseg.toString()));
-        });
+        attrsegs.stream().forEach(attrseg -> result.add(attrseg2index.get(attrseg.toString())));
 
         return result;
     }
@@ -458,11 +454,9 @@ public class CopyDataToClipboard implements ActionListener, Action {
     }
 
     /**
-     * An array of length table.getRowCount() containing 0, 1, 2,...
-     * representing all rows in the table.
+     * An array of length table.getRowCount() containing 0, 1, 2,... representing all rows in the table.
      *
-     * @return An array of length table.getRowCount() containing 0, 1, 2,...
-     * representing all rows in the table.
+     * @return An array of length table.getRowCount() containing 0, 1, 2,... representing all rows in the table.
      */
     private int[] allRows() {
         final int[] rowIndices = new int[table.getRowCount()];
@@ -480,10 +474,12 @@ public class CopyDataToClipboard implements ActionListener, Action {
 
     @Override
     public void putValue(final String key, final Object value) {
+        // Required for implementation of Action, intentionally left blank
     }
 
     @Override
     public void setEnabled(final boolean b) {
+        // Required for implementation of Action, intentionally left blank
     }
 
     @Override
@@ -493,10 +489,12 @@ public class CopyDataToClipboard implements ActionListener, Action {
 
     @Override
     public void addPropertyChangeListener(final PropertyChangeListener listener) {
+        // Required for implementation of Action, intentionally left blank
     }
 
     @Override
     public void removePropertyChangeListener(final PropertyChangeListener listener) {
+        // Required for implementation of Action, intentionally left blank
     }
 
     /**

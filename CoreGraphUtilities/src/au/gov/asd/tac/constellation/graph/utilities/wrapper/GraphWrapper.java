@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -139,7 +139,7 @@ public class GraphWrapper extends GraphElement {
 
     @Override
     public boolean equals(Object o) {
-        throw new UnsupportedOperationException("You compare graphs.");
+        throw new UnsupportedOperationException("You cannot compare graphs.");
     }
 
     @Override
@@ -150,5 +150,4 @@ public class GraphWrapper extends GraphElement {
         hash = 79 * hash + Objects.hashCode(this.deferredRemoval);
         return hash;
     }
-
 }

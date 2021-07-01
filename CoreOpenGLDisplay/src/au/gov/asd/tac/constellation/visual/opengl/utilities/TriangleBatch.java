@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package au.gov.asd.tac.constellation.visual.opengl.utilities;
 
-import au.gov.asd.tac.constellation.visual.graphics3d.Mathf;
-import au.gov.asd.tac.constellation.visual.graphics3d.Vector2f;
-import au.gov.asd.tac.constellation.visual.graphics3d.Vector3f;
+import au.gov.asd.tac.constellation.utilities.graphics.Mathf;
+import au.gov.asd.tac.constellation.utilities.graphics.Vector2f;
+import au.gov.asd.tac.constellation.utilities.graphics.Vector3f;
 import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.util.GLBuffers;
 import java.nio.FloatBuffer;
@@ -73,11 +73,6 @@ public class TriangleBatch {
         return nNumVerts;
     }
 
-    ////////////////////////////////////////////////////////////
-    // Start assembling a mesh. You need to specify a maximum amount
-    // of indexes that you expect. The EndMesh will clean up any uneeded
-    // memory. This is far better than shreading your heap with STL containers...
-    // At least that's my humble opinion.
     /**
      * Start assembling a mesh.
      * <p>

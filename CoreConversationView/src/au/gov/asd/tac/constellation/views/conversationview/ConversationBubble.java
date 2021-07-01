@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 package au.gov.asd.tac.constellation.views.conversationview;
 
-import au.gov.asd.tac.constellation.visual.fonts.FontUtilities;
-import au.gov.asd.tac.constellation.visual.tooltip.TooltipPane;
+import au.gov.asd.tac.constellation.utilities.tooltip.TooltipPane;
 import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -72,7 +71,6 @@ public class ConversationBubble extends VBox {
         setMinHeight(USE_PREF_SIZE);
         setMaxHeight(USE_PREF_SIZE);
         setSpacing(-5);
-        setStyle(String.format("-fx-font-size: %spx", FontUtilities.getOutputFontSize()));
 
         final VBox bubbleContent = new VBox();
         bubbleContent.setAlignment(Pos.CENTER_LEFT);
@@ -106,7 +104,8 @@ public class ConversationBubble extends VBox {
 
         tail = new Path();
         final MoveTo start;
-        final ArcTo curve1, curve2;
+        final ArcTo curve1;
+        final ArcTo curve2;
         if (message.getConversationSide() == ConversationSide.LEFT) {
             start = new MoveTo(TAIL_OFFSET, 0);
             start.yProperty().bind(bubbleContent.heightProperty());

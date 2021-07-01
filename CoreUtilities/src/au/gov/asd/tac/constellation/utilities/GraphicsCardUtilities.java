@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 Australian Signals Directorate
+ * Copyright 2010-2021 Australian Signals Directorate
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 package au.gov.asd.tac.constellation.utilities;
 
+import au.gov.asd.tac.constellation.utilities.text.SeparatorConstants;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,7 +68,10 @@ public class GraphicsCardUtilities {
                     final String tmp = System.getProperty("user.home") + "/dxdiag.txt";
                     final File file = new File(tmp);
                     if (file.exists()) {
-                        file.delete();
+                        final boolean fileIsDeleted = file.delete();
+                        if (!fileIsDeleted) {
+                            //TODO: Handle case where file not successfully deleted
+                        }
                     }
 
                     final long startTime = System.currentTimeMillis();
@@ -75,17 +80,18 @@ public class GraphicsCardUtilities {
                         try {
                             LOCK.wait(1000);
                         } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
                     }
                     final long endTime = System.currentTimeMillis();
                     LOGGER.log(Level.INFO, "Took {0} seconds to retrieve the graphics card capabilities", (endTime - startTime) / 1000);
 
                     final StringBuilder builder = new StringBuilder();
-                    try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+                    try ( BufferedReader in = new BufferedReader(new FileReader(file))) {
                         String line = in.readLine();
                         while (line != null) {
                             builder.append(line);
-                            builder.append("\n");
+                            builder.append(SeparatorConstants.NEWLINE);
 
                             if (graphicsCard == null) {
                                 int cardNameIndex = line.indexOf("Card name: ");
@@ -106,8 +112,10 @@ public class GraphicsCardUtilities {
                     }
 
                     dxDiagInfo = builder.toString();
-                } catch (Exception e) {
+                } catch (final IOException e) {
                     error = e;
+                    // Restore interrupted state S2142
+                    Thread.currentThread().interrupt();
                 }
             }
         }
